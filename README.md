@@ -165,11 +165,16 @@ bash src/iv/run_iv_sensitivity.sh
 
 ### B. Train the policy
 
-Uses the released `policy` + `iv` configs (downloaded automatically). Set `SFT_ADAPTER` only if you have a local SFT checkpoint for KL regularization:
+Uses the released `policy` + `iv` configs (downloaded automatically). The paper objective (Eq. 2) is IV-weighted action-only CE, sample-count normalized, plus KL to a Stage-1 SFT policy with β = 0.05.
+
+Train the SFT reference first (same data, **no** `--use_iv_weighting` / `--use_kl_regularization`), then:
 
 ```bash
-bash src/policy/run_policy.sh
+SFT_ADAPTER=/path/to/qwen25_7b_tutor_policy_lora \
+  bash src/policy/run_policy.sh
 ```
+
+`SFT_ADAPTER` is required. `SKIP_KL=1` trains IV-weighted SFT only and is **not** the paper recipe. Tutoring tables do not need a retrain; they use [chocokiddo/DICE-Policy](https://huggingface.co/chocokiddo/DICE-Policy).
 
 Evaluate action accuracy on the held-out test split:
 

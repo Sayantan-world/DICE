@@ -9,6 +9,7 @@ SPLIT_DIR="${SPLIT_DIR:-$(ensure_policy_data)}"
 INPUT_JSONL="${INPUT_JSONL:-${SPLIT_DIR}/all.jsonl}"
 IV_JSONL="${IV_JSONL:-$(ensure_iv_data)}"
 SFT_ADAPTER="${SFT_ADAPTER:-}"
+SKIP_KL="${SKIP_KL:-0}"
 OUTPUT_DIR="${OUTPUT_DIR:-outputs/policy/qwen25_7b_tutor_policy_ivkl}"
 MODEL_NAME="${MODEL_NAME:-Qwen/Qwen2.5-7B-Instruct}"
 
@@ -17,8 +18,17 @@ if [[ ! -f "${INPUT_JSONL}" ]]; then
   exit 1
 fi
 
+# Paper Eq. (2) always includes KL toward π_SFT (β = 0.05).
 KL_FLAGS=()
-if [[ -n "${SFT_ADAPTER}" ]]; then
+if [[ "${SKIP_KL}" == "1" ]]; then
+  echo "Warning: SKIP_KL=1 — training without KL. This is not the paper objective."
+elif [[ -z "${SFT_ADAPTER}" ]]; then
+  echo "Paper training uses IV-weighted CE + KL to an SFT policy (Eq. 2, β=0.05)."
+  echo "Set SFT_ADAPTER to the Stage-1 SFT LoRA path, for example:"
+  echo "  SFT_ADAPTER=/path/to/qwen25_7b_tutor_policy_lora bash src/policy/run_policy.sh"
+  echo "To train IV-weighted SFT only (not the paper recipe): SKIP_KL=1 bash src/policy/run_policy.sh"
+  exit 1
+else
   KL_FLAGS+=(
     --use_kl_regularization
     --kl_ref_adapter_path "${SFT_ADAPTER}"

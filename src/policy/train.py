@@ -687,9 +687,13 @@ class IVKLTrainer(Trainer):
         mask = (shift_labels != -100).float()
         per_example_ce = (token_loss * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1.0)
 
+        # Paper Eq. (2), minibatch form:
+        #   L = -(1/N) sum_i w_i log π(a_i | x_i) + (β/N) sum_i KL(π(·|x_i) || π_SFT(·|x_i))
+        # CE is sample-count normalized (not divided by sum of weights). KL is an
+        # unweighted mean over the same action tokens (--action_only).
         if self.use_iv_weighting and sample_weight is not None:
             sample_weight = sample_weight.to(per_example_ce.device).to(per_example_ce.dtype)
-            ce_loss = (sample_weight * per_example_ce).sum() / sample_weight.sum().clamp(min=1.0)
+            ce_loss = (sample_weight * per_example_ce).mean()
         else:
             ce_loss = per_example_ce.mean()
 
@@ -905,7 +909,7 @@ def main():
         "--kl_ref_adapter_path",
         type=str,
         default=None,
-        help="Adapter path of the SFT reference policy. Recommended for KL.",
+        help="LoRA adapter for π_SFT in Eq. (2). Required when --use_kl_regularization is set.",
     )
 
     # reporting
@@ -1063,6 +1067,10 @@ def main():
 
     ref_model = None
     if args.use_kl_regularization:
+        if not args.kl_ref_adapter_path:
+            raise ValueError(
+                "--use_kl_regularization requires --kl_ref_adapter_path (the SFT policy π_SFT in Eq. 2)."
+            )
         ref_model = load_reference_model(
             model_name=args.model_name,
             ref_adapter_path=args.kl_ref_adapter_path,
