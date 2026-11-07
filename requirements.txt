@@ -1,0 +1,25 @@
+# Core
+torch>=2.4
+transformers>=4.44
+accelerate>=0.34
+peft>=0.13
+bitsandbytes>=0.44
+datasets>=3.0
+safetensors>=0.4
+sentencepiece>=0.2
+protobuf>=4.25
+
+# Serving / generation
+vllm>=0.6
+
+# APIs
+openai>=1.40
+python-dotenv>=1.0
+
+# Training / eval
+scikit-learn>=1.4
+wandb>=0.17
+tqdm>=4.66
+
+# Optional IV plots
+matplotlib>=3.8

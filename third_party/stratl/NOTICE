@@ -1,0 +1,7 @@
+The files in this directory are a minimal subset of StratL
+(Puech et al., "StratL: Pedagogical Steering of LLMs for Tutoring")
+used only as a paper baseline.
+
+We include IntentSelector, RigidPromptGenerator, taxonomy, and utils.
+API-key loaders from the original repository are intentionally omitted;
+the DICE StratL runner uses local Hugging Face / vLLM teachers.

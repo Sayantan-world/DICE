@@ -1,0 +1,16 @@
+.env
+.venv/
+venv/
+data/*
+!data/README.md
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+wandb/
+outputs/
+checkpoints/
+*.log
+.DS_Store
+.ipynb_checkpoints/
