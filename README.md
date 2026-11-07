@@ -1,12 +1,45 @@
-# DICE
+<h1 align="center">🎲 DICE</h1>
 
-**DICE: Decoupling Capability from Intervention Necessity in LLM Tutoring**
+<p align="center">
+  <b>Decoupling Capability from Intervention Necessity in LLM Tutoring</b>
+</p>
 
-This repository contains the code used for the paper experiments: intervention-value (IV) estimation, policy training, and tutoring evaluation. DICE-Bench data is released on Hugging Face; this repo does not include the dataset generation pipeline.
+<p align="center">
+  <em>Accepted in NeurIPS 2026 (Main)</em>
+</p>
 
-The paper policy is the merged model [chocokiddo/DICE-Policy](https://huggingface.co/chocokiddo/DICE-Policy). Experiment runners use it by default.
+<p align="center">
+  <a href="https://neurips.cc/"><img src="https://img.shields.io/badge/NeurIPS%202026-Main-0B57D0" alt="NeurIPS 2026 Main"></a>
+  <a href="https://arxiv.org/abs/2610.04825"><img src="https://img.shields.io/badge/arXiv-2610.04825-b31b1b.svg?logo=arxiv&logoColor=white" alt="arXiv"></a>
+  <a href="https://huggingface.co/chocokiddo/DICE-Policy"><img src="https://img.shields.io/badge/%F0%9F%A4%97_Model-DICE--Policy-FFD21E" alt="Hugging Face model"></a>
+  <a href="https://huggingface.co/datasets/chocokiddo/DICE-Bench"><img src="https://img.shields.io/badge/%F0%9F%A4%97_Dataset-DICE--Bench-FFD21E" alt="Hugging Face dataset"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2ea44f.svg" alt="MIT License"></a>
+</p>
 
-## Install
+<p align="center">
+  <a href="#-releases">Releases</a> ·
+  <a href="#-install">Install</a> ·
+  <a href="#-data">Data</a> ·
+  <a href="#-models">Models</a> ·
+  <a href="#-reproduce-paper-experiments">Experiments</a> ·
+  <a href="#-citation">Citation</a>
+</p>
+
+---
+
+DICE is an **action-first** tutoring policy: it decides *whether* to intervene before generating a teacher utterance. This repository contains the experiment code — intervention-value (IV) estimation, policy training, and tutoring evaluation. The dataset generation pipeline is not included; **DICE-Bench** and the paper policy are released on Hugging Face.
+
+## 🎯 Releases
+
+| | Resource | Link |
+| :---: | :--- | :--- |
+| 🧠 | **Policy** (merged Qwen2.5-7B-Instruct, paper checkpoint) | [chocokiddo/DICE-Policy](https://huggingface.co/chocokiddo/DICE-Policy) |
+| 📊 | **Benchmark & annotations** (triplets, policy labels, IV) | [chocokiddo/DICE-Bench](https://huggingface.co/datasets/chocokiddo/DICE-Bench) |
+| 📄 | **Paper** | [arXiv:2610.04825](https://arxiv.org/abs/2610.04825) |
+
+Experiment runners use `chocokiddo/DICE-Policy` by default.
+
+## ⚙️ Install
 
 ```bash
 git clone https://github.com/Sayantan-world/DICE.git
@@ -23,10 +56,12 @@ Copy `.env.example` to `.env` and fill in tokens as needed:
 cp .env.example .env
 ```
 
-- `HF_TOKEN` — gated Hugging Face models (Llama)
-- `NVIDIA_API_KEY` — optional IV judges (only if you recompute IV)
-- `OPENAI_API_KEY` — optional OpenAI-compatible judges
-- `WANDB_API_KEY` — policy training logs
+| Variable | Used for |
+| :--- | :--- |
+| `HF_TOKEN` | Gated Hugging Face models (Llama) |
+| `NVIDIA_API_KEY` | Optional IV judges (only if you recompute IV) |
+| `OPENAI_API_KEY` | Optional OpenAI-compatible judges |
+| `WANDB_API_KEY` | Policy training logs |
 
 Scripts auto-load `.env` from the repo root.
 
@@ -42,14 +77,16 @@ export STUDENT_DEVICE=1
 export POLICY_DEVICE=1
 ```
 
-## Data
+## 📊 Data
 
-Evaluation triplets are on Hugging Face: [chocokiddo/DICE-Bench](https://huggingface.co/datasets/chocokiddo/DICE-Bench).
+Evaluation triplets, policy labels, and IV estimates live on Hugging Face: **[chocokiddo/DICE-Bench](https://huggingface.co/datasets/chocokiddo/DICE-Bench)**.
 
 | Split | Size | Use |
-|---|---|---|
+| :--- | ---: | :--- |
 | `triplets_250` | 250 | Primary evaluation split for reported tutoring tables |
 | `triplets_all` | 10,273 | Full easy / target / hard corpus |
+| `policy` | 20,477 | Action labels (train / val / test) |
+| `iv` | — | Intervention Value estimates |
 
 ```bash
 python scripts/download_data.py --split triplets   # eval JSON
@@ -67,10 +104,10 @@ policy = load_dataset("chocokiddo/DICE-Bench", "policy")
 iv = load_dataset("chocokiddo/DICE-Bench", "iv", split="target_observed")
 ```
 
-## Models
+## 🧠 Models
 
 | Role | Default |
-|---|---|
+| :--- | :--- |
 | Teacher | `Qwen/Qwen2.5-7B-Instruct` |
 | Student (main tables) | `Qwen/Qwen2.5-1.5B-Instruct` |
 | Student (Llama transfer) | `meta-llama/Llama-3.2-1B-Instruct` |
@@ -79,7 +116,7 @@ iv = load_dataset("chocokiddo/DICE-Bench", "iv", split="target_observed")
 
 The policy is a **merged** `Qwen2.5-7B-Instruct` checkpoint (IV-weighted action-only LoRA + KL, then merged). Runners load it as a full model; a PEFT adapter path still works if you train your own.
 
-## Reproduce paper experiments
+## 🔬 Reproduce paper experiments
 
 Run everything from the repo root. Defaults download and read `data/triplets_250.json`.
 
@@ -99,7 +136,7 @@ bash src/experiments/run_socraticlm_session.sh
 
 ### 2. DICE tutoring
 
-The runners default `POLICY_ADAPTER_PATH` to `chocokiddo/DICE-Policy`. Override only if you have a local checkpoint.
+The runners default `POLICY_ADAPTER_PATH` to [`chocokiddo/DICE-Policy`](https://huggingface.co/chocokiddo/DICE-Policy). Override only if you have a local checkpoint.
 
 **DICE-Cost** (paper default, λ = 0.25), per-variant:
 
@@ -145,7 +182,7 @@ STUDENT_MODEL=meta-llama/Llama-3.2-1B-Instruct \
 
 Outputs go to `outputs/preds/` and `outputs/metrics/`.
 
-## Optional: recompute IV or retrain the policy
+## 🔁 Optional: recompute IV or retrain the policy
 
 These steps are **not** required to reproduce the tutoring tables if you use [chocokiddo/DICE-Policy](https://huggingface.co/chocokiddo/DICE-Policy). Annotations and IV estimates are on Hugging Face.
 
@@ -182,7 +219,7 @@ Evaluate action accuracy on the held-out test split:
 bash src/policy/run_eval.sh
 ```
 
-## Repository layout
+## 🗂️ Repository layout
 
 ```
 scripts/download_data.py      DICE-Bench download (Hugging Face)
@@ -192,16 +229,18 @@ src/experiments/              SocraticLM and DICE tutoring runners
 scripts/common.sh             repo-root + PYTHONPATH + .env
 ```
 
-## Citation
+## 📚 Citation
+
+If you use DICE, DICE-Bench, or DICE-Policy, please cite:
 
 ```bibtex
 @misc{pal2026dicedecouplingcapabilityintervention,
-      title={DICE: Decoupling Capability from Intervention Necessity in LLM Tutoring}, 
+      title={DICE: Decoupling Capability from Intervention Necessity in LLM Tutoring},
       author={Sayantan Pal and Kaiyi Ji and Rohini K. Srihari},
       year={2026},
       eprint={2610.04825},
       archivePrefix={arXiv},
       primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2610.04825}, 
+      url={https://arxiv.org/abs/2610.04825},
 }
 ```
